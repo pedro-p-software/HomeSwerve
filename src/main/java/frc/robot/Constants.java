@@ -20,8 +20,5 @@ public final class Constants {
     public static final double MAX_SPEED = 3.5;
 
     public static final int ROTATE_AXIS = RobotBase.isSimulation() ? 3 : 2;
-    public static final int DRIVEX = RobotBase.isSimulation() ? 3 : 2;
-    public static final int DRIVEY = RobotBase.isSimulation() ? 4 : 5;
-
   }
 }

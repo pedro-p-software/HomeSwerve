@@ -24,10 +24,10 @@ public class RobotContainer {
     swerve.getAngularVelocityStream(
     ()-> controller.getLeftX(), 
     ()-> -controller.getLeftY(), 
-    ()-> Constants.OperatorConstants.ROTATE_AXIS)
+    ()-> controller.getRawAxis(Constants.OperatorConstants.ROTATE_AXIS) )
     .withControllerHeadingAxis(
-    ()-> controller.getRawAxis(3), 
-    ()-> controller.getRawAxis(4))
+    ()-> controller.getRightX(), 
+    ()-> controller.getRightY())
     .withHeadingControl(()->headingControlActive)
     .withDeadband(0.05)
     .withAllianceRelativeControl();
@@ -61,7 +61,7 @@ public class RobotContainer {
     new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.lockSwerve());
 
     //reseta o gyro
-    new JoystickButton(controller, Button.kTriangle.value).onTrue(Commands.runOnce(swerve::newZero));
+    new JoystickButton(controller, Button.kTriangle.value).onTrue(swerve.newZero());
 
     //Setta speeds a partir do elastic para testes
     new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.setSpeedsFromDashboard());

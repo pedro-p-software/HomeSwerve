@@ -54,9 +54,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
   public SwerveDriveSubsystem(File directory) {
   SmartDashboard.putData(this);
   SmartDashboard.putData(gyro);
-  SmartDashboard.putNumber("speeds/vx", vx);
-  SmartDashboard.putNumber("speeds/vy", vy);
-  SmartDashboard.putNumber("speeds/vrot", vrot);
+  SmartDashboard.setDefaultNumber("speeds/vx", vx);
+  SmartDashboard.setDefaultNumber("speeds/vy", vy);
+  SmartDashboard.setDefaultNumber("speeds/vrot", vrot);
 
   var cfg = new SwerveDriveConfig()
   .withStartingPose(startPose)
