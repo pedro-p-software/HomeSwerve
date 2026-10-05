@@ -20,17 +20,16 @@ public class RobotContainer {
   public PS4Controller controller = new PS4Controller(0);
   public boolean headingControlActive = false;
 
-    final SwerveInputStream driveStream =
-    swerve.getAngularVelocityStream(
-    ()-> controller.getLeftX(), 
-    ()-> -controller.getLeftY(), 
-    ()-> controller.getRawAxis(Constants.OperatorConstants.ROTATE_AXIS) )
-    .withControllerHeadingAxis(
-    ()-> controller.getRightX(), 
-    ()-> controller.getRightY())
-    .withHeadingControl(()->headingControlActive)
-    .withDeadband(0.05)
-    .withAllianceRelativeControl();
+  final SwerveInputStream driveStream = swerve.getAngularVelocityStream(
+      () -> controller.getLeftX(),
+      () -> -controller.getLeftY(),
+      () -> controller.getRawAxis(Constants.OperatorConstants.ROTATE_AXIS))
+      .withControllerHeadingAxis(
+          () -> controller.getRightX(),
+          () -> controller.getRightY())
+      .withHeadingControl(() -> headingControlActive)
+      .withDeadband(0.05)
+      .withAllianceRelativeControl();
 
   public RobotContainer() {
     // Configure the trigger bindings
@@ -38,32 +37,30 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    //Ativa e desativa o headingcontrol
+
+    // Ativa e desativa o headingcontrol
     SmartDashboard.putBoolean("HeadingControlActive", headingControlActive);
 
-    //Autoexplicativo 
-    swerve.setDefaultCommand(swerve.setSpeedsFromDashboard());
+    // Autoexplicativo
+    swerve.setDefaultCommand(swerve.drive(driveStream));
 
-    //Cria uma nova funçao pro botao 2 (no linux é o bolinha se nao me engano)
-    //Define que quando apertado, vai rodar uma vez apenas a sequencia de codigo do bloco
-    //Que inverte o estado de headingControlActive e ai poe no Elastic
-    //A ultima linha informa que ele roda fora do teleop ainda (no disabled)
-    new JoystickButton(controller, 2).onTrue
-    (Commands.runOnce(()-> 
-    {
+    // Cria uma nova funçao pro botao 2 (no linux é o bolinha se nao me engano)
+    // Define que quando apertado, vai rodar uma vez apenas a sequencia de codigo do
+    // bloco
+    // Que inverte o estado de headingControlActive e ai poe no Elastic
+    // A ultima linha informa que ele roda fora do teleop ainda (no disabled)
+    new JoystickButton(controller, 2).onTrue(Commands.runOnce(() -> {
       headingControlActive = !headingControlActive;
       SmartDashboard.putBoolean("HeadingControlActive", headingControlActive);
-    }
-      ).ignoringDisable(true));
+    }).ignoringDisable(true));
 
-    //trava as rodas do swerve. Comando pronto
+    // trava as rodas do swerve. Comando pronto
     new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.lockSwerve());
 
-    //reseta o gyro
+    // reseta o gyro
     new JoystickButton(controller, Button.kTriangle.value).onTrue(swerve.newZero());
 
-    //Setta speeds a partir do elastic para testes
+    // Setta speeds a partir do elastic para testes
     new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.setSpeedsFromDashboard());
   }
 

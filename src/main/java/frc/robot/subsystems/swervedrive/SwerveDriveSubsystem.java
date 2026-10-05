@@ -38,39 +38,38 @@ public class SwerveDriveSubsystem extends SubsystemBase {
   private double vx = 0.0;
   private double vy = 0.0;
   private double vrot = 0.0;
-  
-  private final StructPublisher<Pose2d> posePublisher =
-    NetworkTableInstance.getDefault()
-        .getStructTopic("RobotPose", Pose2d.struct)
-        .publish();
+
+  private final StructPublisher<Pose2d> posePublisher = NetworkTableInstance.getDefault()
+      .getStructTopic("RobotPose", Pose2d.struct)
+      .publish();
 
   private Pose2d startPose = new Pose2d(
-  new Translation2d(
-  Meter.of(1), 
-  Meter.of(4)
-  ),Rotation2d.fromDegrees(0));
-
+      new Translation2d(
+          Meter.of(1),
+          Meter.of(4)),
+      Rotation2d.fromDegrees(0));
 
   public SwerveDriveSubsystem(File directory) {
-  SmartDashboard.putData(this);
-  SmartDashboard.putData(gyro);
-  SmartDashboard.setDefaultNumber("speeds/vx", vx);
-  SmartDashboard.setDefaultNumber("speeds/vy", vy);
-  SmartDashboard.setDefaultNumber("speeds/vrot", vrot);
+    SmartDashboard.putData(this);
+    SmartDashboard.putData(gyro);
+    SmartDashboard.setDefaultNumber("speeds/vx", vx);
+    SmartDashboard.setDefaultNumber("speeds/vy", vy);
+    SmartDashboard.setDefaultNumber("speeds/vrot", vrot);
 
-  var cfg = new SwerveDriveConfig()
-  .withStartingPose(startPose)
-  .withSubsystem(this)
-  .withGyro(()-> gyro.getRotation2d().getMeasure())
-  .withTranslationController(new PIDController(0, 0, 0))
-  .withMaximumChassisSpeed(MetersPerSecond.of(Constants.OperatorConstants.MAX_SPEED), RadiansPerSecond.of(Math.PI * 2))
-  .withRotationController(new PIDController(0, 0, 0))
-  .withTelemetry("swerve", new SwerveDriveTelemetryConfig(yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity.HIGH));
+    var cfg = new SwerveDriveConfig()
+        .withStartingPose(startPose)
+        .withSubsystem(this)
+        .withGyro(() -> gyro.getRotation2d().getMeasure())
+        .withTranslationController(new PIDController(0, 0, 0))
+        .withMaximumChassisSpeed(MetersPerSecond.of(Constants.OperatorConstants.MAX_SPEED),
+            RadiansPerSecond.of(Math.PI * 2))
+        .withRotationController(new PIDController(0, 0, 0))
+        .withTelemetry("swerve",
+            new SwerveDriveTelemetryConfig(yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity.HIGH));
 
-  SwerveParser.parse(new File(Filesystem.getDeployDirectory(), "swerve/base"));
+    SwerveParser.parse(new File(Filesystem.getDeployDirectory(), "swerve/base"));
 
-  
-  swerveDrive = SwerveParser.createSwerveDrive(cfg);
+    swerveDrive = SwerveParser.createSwerveDrive(cfg);
 
   }
 
@@ -79,67 +78,64 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     getPose();
     swerveDrive.updateTelemetry();
-    
+
   }
 
-  public SwerveInputStream getAngularVelocityStream(DoubleSupplier x, DoubleSupplier y, DoubleSupplier rot){
+  public SwerveInputStream getAngularVelocityStream(DoubleSupplier x, DoubleSupplier y, DoubleSupplier rot) {
     return new SwerveInputStream(swerveDrive, x, y, rot);
   }
 
-  public Rotation2d getHeading(){
+  public Rotation2d getHeading() {
     return new Rotation2d(swerveDrive.getGyroAngle());
   }
 
-  public Pose2d getPose(){
+  public Pose2d getPose() {
     return swerveDrive.getPose();
   }
 
-  public void resetOdometry(){
+  public void resetOdometry() {
     swerveDrive.resetOdometry(startPose);
   }
 
-  public Field2d getField2d(){
+  public Field2d getField2d() {
     return swerveDrive.getField2d();
   }
 
-  public Command drive(SwerveInputStream stream){
+  public Command drive(SwerveInputStream stream) {
     return swerveDrive.drive(
-      ()-> ChassisSpeeds.fromFieldRelativeSpeeds
-      (stream.get(), 
-      new Rotation2d(
-        swerveDrive.getGyroAngle()
-        )));
+        () -> ChassisSpeeds.fromFieldRelativeSpeeds(stream.get(),
+            new Rotation2d(
+                swerveDrive.getGyroAngle())));
   }
 
-  public Command driveToPointYAMS(Pose2d pt){
+  public Command driveToPointYAMS(Pose2d pt) {
     return swerveDrive.driveToPose(pt);
   }
 
-  public Command newZero(){
+  public Command newZero() {
     return Commands.runOnce(swerveDrive::zeroGyro, this).withName("Swerve");
   }
 
-  public Rotation2d getAngle(){
+  public Rotation2d getAngle() {
     return new Rotation2d(swerveDrive.getGyroAngle());
   }
 
-  public Command lockSwerve(){
-    return this.run(()-> swerveDrive.lockPose());
+  public Command lockSwerve() {
+    return this.run(() -> swerveDrive.lockPose());
   }
 
-  public Command setSpeedsFromDashboard(){
-    return swerveDrive.drive(()->
-     new ChassisSpeeds(
-      SmartDashboard.getNumber("speeds/vx", vx), 
-      SmartDashboard.getNumber("speeds/vy", vy), 
-      SmartDashboard.getNumber("speeds/vrot", vrot)));
+  public Command setSpeedsFromDashboard() {
+    return swerveDrive.drive(() -> new ChassisSpeeds(
+        SmartDashboard.getNumber("speeds/vx", vx),
+        SmartDashboard.getNumber("speeds/vy", vy),
+        SmartDashboard.getNumber("speeds/vrot", vrot)));
   }
 
   @Override
   public void simulationPeriodic() {
     swerveDrive.simIterate();
     posePublisher.set(swerveDrive.getPose());
-    
+
     swerveDrive.updateTelemetry();
     // This method will be called once per scheduler run during simulation
   }
