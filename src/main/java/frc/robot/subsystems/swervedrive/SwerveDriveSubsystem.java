@@ -35,6 +35,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
   private SwerveDrive swerveDrive;
   private AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
+  private double vx = 0.0;
+  private double vy = 0.0;
+  private double vrot = 0.0;
   
   private final StructPublisher<Pose2d> posePublisher =
     NetworkTableInstance.getDefault()
@@ -51,6 +54,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
   public SwerveDriveSubsystem(File directory) {
   SmartDashboard.putData(this);
   SmartDashboard.putData(gyro);
+  SmartDashboard.putNumber("speeds/vx", vx);
+  SmartDashboard.putNumber("speeds/vy", vy);
+  SmartDashboard.putNumber("speeds/vrot", vrot);
 
   var cfg = new SwerveDriveConfig()
   .withStartingPose(startPose)
@@ -119,6 +125,14 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
   public Command lockSwerve(){
     return this.run(()-> swerveDrive.lockPose());
+  }
+
+  public Command setSpeedsFromDashboard(){
+    return swerveDrive.drive(()->
+     new ChassisSpeeds(
+      SmartDashboard.getNumber("speeds/vx", vx), 
+      SmartDashboard.getNumber("speeds/vy", vy), 
+      SmartDashboard.getNumber("speeds/vrot", vrot)));
   }
 
   @Override

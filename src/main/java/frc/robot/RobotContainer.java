@@ -39,25 +39,32 @@ public class RobotContainer {
 
   private void configureBindings() {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    SmartDashboard.putBoolean("HeadingControlActive", headingControlActive);
     //Ativa e desativa o headingcontrol
-    swerve.setDefaultCommand(swerve.drive(driveStream));
+    SmartDashboard.putBoolean("HeadingControlActive", headingControlActive);
 
+    //Autoexplicativo 
+    swerve.setDefaultCommand(swerve.setSpeedsFromDashboard());
+
+    //Cria uma nova funçao pro botao 2 (no linux é o bolinha se nao me engano)
+    //Define que quando apertado, vai rodar uma vez apenas a sequencia de codigo do bloco
+    //Que inverte o estado de headingControlActive e ai poe no Elastic
+    //A ultima linha informa que ele roda fora do teleop ainda (no disabled)
     new JoystickButton(controller, 2).onTrue
     (Commands.runOnce(()-> 
     {
-      System.out.println("Heading control got here");
       headingControlActive = !headingControlActive;
       SmartDashboard.putBoolean("HeadingControlActive", headingControlActive);
     }
       ).ignoringDisable(true));
 
+    //trava as rodas do swerve. Comando pronto
     new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.lockSwerve());
 
     //reseta o gyro
     new JoystickButton(controller, Button.kTriangle.value).onTrue(Commands.runOnce(swerve::newZero));
 
-    //fazer o set de speeds
+    //Setta speeds a partir do elastic para testes
+    new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.setSpeedsFromDashboard());
   }
 
   public Command getAutonomousCommand() {
