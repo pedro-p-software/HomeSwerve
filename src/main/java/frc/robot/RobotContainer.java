@@ -4,9 +4,17 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meter;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -15,10 +23,30 @@ import frc.robot.subsystems.swervedrive.SwerveDriveSubsystem;
 import yams.mechanisms.swerve.utility.SwerveInputStream;
 
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
+
   public SwerveDriveSubsystem swerve = new SwerveDriveSubsystem(Filesystem.getDeployDirectory());
   public PS4Controller controller = new PS4Controller(0);
+
   public boolean headingControlActive = false;
+
+  private final SendableChooser<Command> autoChooser;
+
+  //Array of poses to select from. Pretend to add button to cycle through and see through dashboard. Dope;
+  private Pose2d[] poses = {
+    new Pose2d(
+    new Translation2d
+    (Meter.of(4), 
+    Meter.of(3)),
+    Rotation2d.fromDegrees(0)), 
+
+    new Pose2d(
+      new Translation2d(
+        Meter.of(3),
+        Meter.of(5)),
+        Rotation2d.fromDegrees(50)
+    )};
+
+    private int currentPose = 0;
 
   final SwerveInputStream driveStream = swerve.getAngularVelocityStream(
       () -> controller.getLeftX(),
@@ -32,7 +60,11 @@ public class RobotContainer {
       .withAllianceRelativeControl();
 
   public RobotContainer() {
-    // Configure the trigger bindings
+
+    //pathplanner auto stuff
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("PathPlanning/Selected Auto: ", autoChooser);
+    SmartDashboard.putData("PathPlanning/Selected Pose: ",(Sendable) poses[currentPose]);
     configureBindings();
   }
 
@@ -44,15 +76,16 @@ public class RobotContainer {
     // Autoexplicativo
     swerve.setDefaultCommand(swerve.drive(driveStream));
 
-    // Cria uma nova funçao pro botao 2 (no linux é o bolinha se nao me engano)
-    // Define que quando apertado, vai rodar uma vez apenas a sequencia de codigo do
-    // bloco
-    // Que inverte o estado de headingControlActive e ai poe no Elastic
-    // A ultima linha informa que ele roda fora do teleop ainda (no disabled)
+    //Ativa ou desativa o heading control
     new JoystickButton(controller, 2).onTrue(Commands.runOnce(() -> {
       headingControlActive = !headingControlActive;
       SmartDashboard.putBoolean("HeadingControlActive", headingControlActive);
     }).ignoringDisable(true));
+
+    new JoystickButton(controller, 1).onTrue(Commands.runOnce(()->{
+
+    }, swerve)
+    );
 
     // trava as rodas do swerve. Comando pronto
     new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.lockSwerve());
@@ -65,7 +98,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return null;
+
+    return autoChooser.getSelected();
   }
 }

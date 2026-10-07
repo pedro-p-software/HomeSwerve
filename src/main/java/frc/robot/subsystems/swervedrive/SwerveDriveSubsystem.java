@@ -7,10 +7,16 @@ package frc.robot.subsystems.swervedrive;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import java.io.File;
 import java.util.function.DoubleSupplier;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.studica.frc.AHRS;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,6 +24,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -35,9 +42,16 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
   private SwerveDrive swerveDrive;
   private AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
+
   private double vx = 0.0;
   private double vy = 0.0;
   private double vrot = 0.0;
+
+  //Pathplanner stuff
+  PPHolonomicDriveController driveControllerPPH = 
+  new PPHolonomicDriveController(
+    new PIDConstants(0.0, 0.0, 0.0),
+     new PIDConstants(0.0, 0.0, 0.0));
 
   private final StructPublisher<Pose2d> posePublisher = NetworkTableInstance.getDefault()
       .getStructTopic("RobotPose", Pose2d.struct)
@@ -71,6 +85,24 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     swerveDrive = SwerveParser.createSwerveDrive(cfg);
 
+    RobotConfig ppConfig;
+    try{
+      ppConfig = RobotConfig.fromGUISettings();
+    } catch (Exception e){
+      e.printStackTrace();
+      return;
+    }
+
+    AutoBuilder.configure
+    (this::getPose, 
+    this::resetPose, 
+    this::getRobotRelativeSpeeds,
+    (speeds, feedforwards) -> swerveDrive.setRobotRelativeChassisSpeeds(speeds, feedforwards.linearForces()),
+    driveControllerPPH,
+    ppConfig,
+    ()->DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red, 
+    this
+    );
   }
 
   @Override
@@ -93,8 +125,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     return swerveDrive.getPose();
   }
 
-  public void resetOdometry() {
-    swerveDrive.resetOdometry(startPose);
+  public void resetPose(Pose2d pose) {
+    swerveDrive.resetOdometry(pose);
   }
 
   public Field2d getField2d() {
@@ -129,6 +161,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         SmartDashboard.getNumber("speeds/vx", vx),
         SmartDashboard.getNumber("speeds/vy", vy),
         SmartDashboard.getNumber("speeds/vrot", vrot)));
+  }
+
+  public ChassisSpeeds getRobotRelativeSpeeds(){
+    return swerveDrive.getRobotRelativeSpeed();
   }
 
   @Override
