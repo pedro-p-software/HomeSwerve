@@ -24,12 +24,13 @@ import yams.mechanisms.swerve.utility.SwerveInputStream;
 
 public class RobotContainer {
 
-  public SwerveDriveSubsystem swerve = new SwerveDriveSubsystem(Filesystem.getDeployDirectory());
+  public SwerveDriveSubsystem swerve = new SwerveDriveSubsystem();
   public PS4Controller controller = new PS4Controller(0);
 
   public boolean headingControlActive = false;
 
-  private final SendableChooser<Command> autoChooser;
+  private final SendableChooser<Command> 
+  autoChooser;
 
   //Array of poses to select from. Pretend to add button to cycle through and see through dashboard. Dope;
   private Pose2d[] poses = {
@@ -44,18 +45,26 @@ public class RobotContainer {
         Meter.of(3),
         Meter.of(5)),
         Rotation2d.fromDegrees(50)
-    )};
+    ),
+    
+    new Pose2d(
+      new Translation2d(
+        Meter.of(2),
+        Meter.of(2)),
+        Rotation2d.fromDegrees(90)
+      )
+  };
 
     private int currentPose = 0;
 
   final SwerveInputStream driveStream = swerve.getAngularVelocityStream(
       () -> controller.getLeftX(),
       () -> -controller.getLeftY(),
-      () -> controller.getRawAxis(Constants.OperatorConstants.ROTATE_AXIS))
+      () -> -controller.getRightX())
       .withControllerHeadingAxis(
           () -> controller.getRightX(),
           () -> controller.getRightY())
-      .withHeadingControl(() -> headingControlActive)
+      .withHeadingControl(() -> false)
       .withDeadband(0.05)
       .withAllianceRelativeControl();
 
@@ -64,7 +73,7 @@ public class RobotContainer {
     //pathplanner auto stuff
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("PathPlanning/Selected Auto: ", autoChooser);
-    SmartDashboard.putData("PathPlanning/Selected Pose: ",(Sendable) poses[currentPose]);
+    SmartDashboard.putNumber("PathPlanning/Selected Pose: ", currentPose);
     configureBindings();
   }
 
@@ -86,6 +95,15 @@ public class RobotContainer {
 
     }, swerve)
     );
+
+    new JoystickButton(controller, Button.kOptions.value).onTrue(Commands.runOnce(() -> {
+      currentPose = (currentPose + 1) % poses.length-1;
+      SmartDashboard.putData("PathPlanning/Selected Pose: ",(Sendable) poses[currentPose]);
+    }).ignoringDisable(true));
+
+    new JoystickButton(controller, Button.kCircle.value).onTrue(Commands.runOnce(() -> {
+      swerve.driveToPointYAMS((poses[currentPose]));
+    }).ignoringDisable(true));
 
     // trava as rodas do swerve. Comando pronto
     new JoystickButton(controller, Button.kCross.value).whileTrue(swerve.lockSwerve());

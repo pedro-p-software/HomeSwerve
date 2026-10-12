@@ -7,23 +7,23 @@
   },
   "angle": {
     "type": "talonfx_krakenx60",
-    "id": 50,
+    "id": 6,
     "canbus": "rio"
   },
   "inverted": {
-    "drive": false,
+    "drive": true,
     "angle": false
   },
   "absoluteEncoder": {
     "type": "cancoder_can",
-    "id": 33,
+    "id": 12,
     "channel": 0,
     "canbus": "rio"
   },
-  "absoluteEncoderOffset": 0,
+  "absoluteEncoderOffset": -50.27328,
   "absoluteEncoderInverted": false,
   "location": {
-    "front": 10.25,
-    "left": 10.25
+    "front": 10.17,
+    "left": 10.17
   }
 }

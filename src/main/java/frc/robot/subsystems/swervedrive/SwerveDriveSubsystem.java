@@ -63,7 +63,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
           Meter.of(4)),
       Rotation2d.fromDegrees(0));
 
-  public SwerveDriveSubsystem(File directory) {
+  public SwerveDriveSubsystem() {
     SmartDashboard.putData(this);
     SmartDashboard.putData(gyro);
     SmartDashboard.setDefaultNumber("speeds/vx", vx);

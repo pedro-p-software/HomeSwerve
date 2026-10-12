@@ -17,14 +17,14 @@
   },
   "absoluteEncoder": {
     "type": "cancoder_can",
-    "id": 14,
+    "id": 13,
     "channel": 0,
     "canbus": "rio"
   },
-  "absoluteEncoderOffset": 0,
+  "absoluteEncoderOffset": 69.17004,
   "absoluteEncoderInverted": false,
   "location": {
-    "front": -10.25,
-    "left": 10.25
+    "front": -10.17,
+    "left": 10.17
   }
 }
