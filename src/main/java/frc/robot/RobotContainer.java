@@ -11,7 +11,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -58,12 +57,12 @@ public class RobotContainer {
     private int currentPose = 0;
 
   final SwerveInputStream driveStream = swerve.getAngularVelocityStream(
-      () -> controller.getLeftX(),
-      () -> -controller.getLeftY(),
+      () -> controller.getLeftY(),
+      () -> -controller.getLeftX(),
       () -> -controller.getRightX())
       .withControllerHeadingAxis(
-          () -> controller.getRightX(),
-          () -> controller.getRightY())
+          () -> controller.getRightY(),
+          () -> controller.getRightX())
       .withHeadingControl(() -> false)
       .withDeadband(0.05)
       .withAllianceRelativeControl();
